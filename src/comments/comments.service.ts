@@ -1,5 +1,9 @@
 // src/comments/comments.service.ts
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { Repository } from 'typeorm';
 import { Comment } from './entities/comment.entity';
@@ -8,6 +12,7 @@ import { CommentReport } from './entities/comment-report.entity';
 import { CommentLike } from './entities/comment-like.entity';
 import { CreateReplyDto } from './dto/create-reply.dto';
 import { PaginateCommentDto } from './dto/paginate-comment.dto';
+import { LikeCommentDto } from './dto/like-comment.dto';
 
 @Injectable()
 export class CommentsService {
@@ -66,5 +71,32 @@ export class CommentsService {
     if (result.affected === 0) {
       throw new NotFoundException('댓글을 찾을 수 없습니다.');
     }
+  }
+
+  // 댓글/대댓글 좋아요
+  async likeComment(id: number, likeCommentDto: LikeCommentDto): Promise<void> {
+    const comment = await this.commentsRepository.findOne({ where: { id } });
+    if (!comment) {
+      throw new NotFoundException('댓글을 찾을 수 없습니다.');
+    }
+
+    const { writer } = likeCommentDto;
+
+    // 중복 좋아요 체크
+    const existingLike = await this.likesRepository.findOne({
+      where: { comment: { id }, writer },
+    });
+
+    if (existingLike) {
+      throw new BadRequestException('이미 이 댓글에 좋아요를 눌렀습니다.');
+    }
+
+    // 좋아요 저장
+    const like = this.likesRepository.create({ comment, writer });
+    await this.likesRepository.save(like);
+
+    // 댓글의 좋아요 수 증가
+    comment.likeCount += 1;
+    await this.commentsRepository.save(comment);
   }
 }

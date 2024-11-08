@@ -15,6 +15,7 @@ import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Comment } from './entities/comment.entity';
 import { CreateReplyDto } from './dto/create-reply.dto';
 import { PaginateCommentDto } from './dto/paginate-comment.dto';
+import { LikeCommentDto } from './dto/like-comment.dto';
 
 @ApiTags('Comments')
 @Controller('comments')
@@ -55,5 +56,17 @@ export class CommentsController {
   @ApiResponse({ status: 404, description: '댓글을 찾을 수 없음' })
   async deleteComment(@Param('id', ParseIntPipe) id: number) {
     return await this.commentsService.deleteComment(id);
+  }
+
+  @Post(':id/like')
+  @ApiOperation({ summary: '댓글/대댓글 좋아요 API' })
+  @ApiResponse({ status: 201, description: '좋아요 성공' })
+  @ApiResponse({ status: 400, description: '잘못된 요청' })
+  @ApiResponse({ status: 404, description: '댓글을 찾을 수 없음' })
+  async likeComment(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() likeCommentDto: LikeCommentDto,
+  ) {
+    return await this.commentsService.likeComment(id, likeCommentDto);
   }
 }
