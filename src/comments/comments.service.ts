@@ -1,11 +1,12 @@
 // src/comments/comments.service.ts
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { Repository } from 'typeorm';
 import { Comment } from './entities/comment.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CommentReport } from './entities/comment-report.entity';
 import { CommentLike } from './entities/comment-like.entity';
+import { CreateReplyDto } from './dto/create-reply.dto';
 
 @Injectable()
 export class CommentsService {
@@ -22,5 +23,21 @@ export class CommentsService {
   async createComment(createCommentDto: CreateCommentDto): Promise<Comment> {
     const comment = this.commentsRepository.create(createCommentDto);
     return await this.commentsRepository.save(comment);
+  }
+
+  // 대댓글 작성
+  async createReply(createReplyDto: CreateReplyDto): Promise<Comment> {
+    const { parentId, ...rest } = createReplyDto;
+    const parent = await this.commentsRepository.findOne({
+      where: { id: parentId },
+    });
+    if (!parent) {
+      throw new NotFoundException('부모 댓글을 찾을 수 없습니다.');
+    }
+    const reply = this.commentsRepository.create({
+      ...rest,
+      parent,
+    });
+    return await this.commentsRepository.save(reply);
   }
 }
