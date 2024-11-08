@@ -59,4 +59,12 @@ export class CommentsService {
       data: comments,
     };
   }
+
+  // 댓글/대댓글 삭제
+  async deleteComment(id: number): Promise<void> {
+    const result = await this.commentsRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException('댓글을 찾을 수 없습니다.');
+    }
+  }
 }
