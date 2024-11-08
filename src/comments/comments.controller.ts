@@ -16,6 +16,7 @@ import { Comment } from './entities/comment.entity';
 import { CreateReplyDto } from './dto/create-reply.dto';
 import { PaginateCommentDto } from './dto/paginate-comment.dto';
 import { LikeCommentDto } from './dto/like-comment.dto';
+import { ReportCommentDto } from './dto/report-comment.dto';
 
 @ApiTags('Comments')
 @Controller('comments')
@@ -68,5 +69,17 @@ export class CommentsController {
     @Body() likeCommentDto: LikeCommentDto,
   ) {
     return await this.commentsService.likeComment(id, likeCommentDto);
+  }
+
+  @Post(':id/report')
+  @ApiOperation({ summary: '댓글/대댓글 신고하기 API' })
+  @ApiResponse({ status: 201, description: '신고 성공' })
+  @ApiResponse({ status: 400, description: '잘못된 요청' })
+  @ApiResponse({ status: 404, description: '댓글을 찾을 수 없음' })
+  async reportComment(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() reportCommentDto: ReportCommentDto,
+  ) {
+    return await this.commentsService.reportComment(id, reportCommentDto);
   }
 }
