@@ -1,10 +1,11 @@
 // src/comments/comments.controller.ts
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Comment } from './entities/comment.entity';
 import { CreateReplyDto } from './dto/create-reply.dto';
+import { PaginateCommentDto } from './dto/paginate-comment.dto';
 
 @ApiTags('Comments')
 @Controller('comments')
@@ -29,5 +30,12 @@ export class CommentsController {
   @ApiBody({ type: CreateReplyDto })
   async createReply(@Body() createReplyDto: CreateReplyDto): Promise<Comment> {
     return await this.commentsService.createReply(createReplyDto);
+  }
+  @Get()
+  @ApiOperation({ summary: '댓글/대댓글 조회 API' })
+  @ApiResponse({ status: 200, description: '조회 성공', type: [Comment] })
+  @ApiResponse({ status: 400, description: '잘못된 요청' })
+  async getComments(@Query() paginateDto: PaginateCommentDto) {
+    return await this.commentsService.getComments(paginateDto);
   }
 }

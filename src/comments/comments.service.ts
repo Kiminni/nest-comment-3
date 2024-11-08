@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CommentReport } from './entities/comment-report.entity';
 import { CommentLike } from './entities/comment-like.entity';
 import { CreateReplyDto } from './dto/create-reply.dto';
+import { PaginateCommentDto } from './dto/paginate-comment.dto';
 
 @Injectable()
 export class CommentsService {
@@ -39,5 +40,23 @@ export class CommentsService {
       parent,
     });
     return await this.commentsRepository.save(reply);
+  }
+
+  // 댓글/대댓글 조회
+  async getComments(paginateDto: PaginateCommentDto) {
+    const { page, limit } = paginateDto;
+    const [comments, total] = await this.commentsRepository.findAndCount({
+      where: { isHidden: false, parent: null },
+      relations: ['children'],
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { createdAt: 'DESC' },
+    });
+    return {
+      total,
+      page,
+      limit,
+      data: comments,
+    };
   }
 }
