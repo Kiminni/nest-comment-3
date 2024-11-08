@@ -3,6 +3,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { addTransactionalDataSource } from 'typeorm-transactional';
 import { DataSource } from 'typeorm';
+import { CommentsModule } from './comments/comments.module';
+import { CommentReport } from './comments/entities/comment-report.entity';
+import { CommentLike } from './comments/entities/comment-like.entity';
+import { Comment } from './comments/entities/comment.entity';
 
 @Module({
   imports: [
@@ -18,8 +22,10 @@ import { DataSource } from 'typeorm';
           database: process.env.DB_DATABASE,
           synchronize: process.env.DB_SYNC === 'true',
           timezone: 'Z',
+          entities: [Comment, CommentLike, CommentReport], // 엔티티 등록
         };
       },
+
       async dataSourceFactory(options) {
         if (!options) {
           throw new Error('Invalid options passed');
@@ -28,7 +34,9 @@ import { DataSource } from 'typeorm';
         return addTransactionalDataSource(new DataSource(options));
       },
     }),
+    CommentsModule,
   ],
+
   controllers: [],
   providers: [],
 })
